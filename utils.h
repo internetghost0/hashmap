@@ -23,9 +23,8 @@ char* read_file(const char* file_path);
 char* read_file_cap(const char* file_path, size_t capacity);
 
 const char* strip_left(const char* str, size_t str_len);
-CStringArray split_by_space(const char* str, size_t str_len);
+CStringArray split_by_whitespace(const char* str, size_t str_len);
 CStringArray split_by_delim(const char* str, size_t str_len, char delim);
-
 
 
 #ifdef UTILS_IMPL
@@ -73,7 +72,7 @@ const char* strip_left(const char* str, size_t str_len)
     return str;
 }
 
-CStringArray split_by_space(const char* str, size_t str_len)
+CStringArray split_by_whitespace(const char* str, size_t str_len)
 {
     CStringArray result = {0};
     result.data = NULL;
@@ -83,28 +82,24 @@ CStringArray split_by_space(const char* str, size_t str_len)
     result.data = malloc(result.capacity * sizeof(char*));
     assert(result.data != NULL && "Not enough memory");
     memset(result.data, 0, sizeof(char*) * result.capacity);
-    size_t begin = 0;
-    for (size_t i = 1; i < str_len; ++i) {
-        if (isspace(str[i - 1]) && !isspace(str[i])) {
-            begin = i;
-        }
-        else if (isspace(str[i]) && !isspace(str[i-1]) || i == str_len - 1) {
-           size_t word_len = i - begin;
-            if (i == str_len - 1) {
-                word_len++;
-            }
-           // double buffer size
-           if (word_len + result.length >= result.capacity) {
-               result.capacity = result.capacity * 2 + word_len;
+
+    char* tmp;
+    char* token;
+    char* rest = strdup(str);
+
+    while ((token = strtok_r(rest, " \n\t\0", &rest))) {
+           if (result.length >= result.capacity) {
+               result.capacity = result.capacity * 2;
+               //TODO: assert if null
                result.data = realloc(result.data, result.capacity * sizeof(char*));
            }
-           char *tmp = malloc(1 + word_len * sizeof(char));
-           memcpy(tmp, str + begin, word_len * sizeof(char));
-           result.data[result.length++] = tmp;
-       }
+        result.data[result.length++] = token;
     }
     return result;
 }
+
+
+//TODO: rewrite
 CStringArray split_by_delim(const char* str, size_t str_len, char delim)
 {
     CStringArray result = {0};
@@ -122,8 +117,8 @@ CStringArray split_by_delim(const char* str, size_t str_len, char delim)
                word_len++;
            }
            // double buffer size
-           if (word_len + result.length >= result.capacity) {
-               result.capacity = result.capacity * 2 + word_len;
+           if (result.length >= result.capacity) {
+               result.capacity = result.capacity * 2;
                result.data = realloc(result.data, result.capacity * sizeof(char*));
            }
            char *tmp = malloc(1 + word_len * sizeof(char));
