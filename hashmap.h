@@ -116,26 +116,38 @@ void hashmap_add(HashMap *hm, HASH_KEY_TYPE key, HASH_VALUE_TYPE value)
     // if cell unoccupied -> add new key
     if (cell->occupied == false) {
         hm->keys[hm->length++] = key;
+        cell->key = key;
+        cell->value = value;
+        cell->occupied = true;
+        cell->next = NULL;
     }
-    else if (strcmp(cell->key, key) != 0) {
+    // if cell occupied & key is same
+    else if (strcmp(cell->key, key) == 0) {
+        cell->value = value;
+    }
+    // if cell occupied & key is different
+    else {
+        // iterate through linked list while end or while find the key
         while (cell->next != NULL ) {
-            cell = cell->next;
             if (strcmp(cell->key, key) == 0) break;
+            cell = cell->next;
         }
-        // if key is new -> allocate a cell and add new key
-        if (strcmp(cell->key, key) != 0) {
+        // if find the key -> update the value
+        if (strcmp(cell->key, key) == 0) {
+            cell->value = value;
+        // else -> create a new cell
+        } else {
             cell->next = malloc(sizeof(Cell));
             assert(cell->next && "Not enough memory");
             cell = cell->next;
             hm->keys[hm->length++] = key;
+
+            cell->key = key;
+            cell->value = value;
+            cell->occupied = true;
+            cell->next = NULL;
         }
     }
-
-    cell->key = key;
-    // memcpy? orr
-    cell->value = value;
-    cell->occupied = true;
-    cell->next = NULL;
 }
 
 Hash_Result hashmap_get(HashMap *hm, HASH_KEY_TYPE key)

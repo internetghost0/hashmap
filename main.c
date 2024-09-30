@@ -34,7 +34,6 @@ int test2(void)
     hashmap_add(&hm, "a", 1);
     hashmap_add(&hm, "a", 1);
     hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
     hashmap_add(&hm, "a2", 2);
     hashmap_add(&hm, "a3", 3);
     hashmap_add(&hm, "a4", 4);
@@ -47,6 +46,8 @@ int test2(void)
     hashmap_add(&hm, "a9", 9);
     hashmap_add(&hm, "a10", 10);
     hashmap_add(&hm, "a11", 11);
+    hashmap_add(&hm, "a", 1);
+    hashmap_add(&hm, "a2", 2);
     printf("%s\n",  hashmap_pop(&hm, "a").value == 1  ? "true" : "false");
     printf("%s\n", hashmap_get(&hm, "a2").value == 2  ? "true" : "false");
     printf("%s\n", hashmap_get(&hm, "a3").value == 3  ? "true" : "false");
