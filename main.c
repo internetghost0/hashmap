@@ -70,7 +70,9 @@ int test2(void)
     hashmap_free(&hm);
     return 0;
 }
-
+int hashpairs_sort(const void* ptr1, const void* ptr2) {
+    return ((Hash_Pair*)ptr1)->value < ((Hash_Pair*)ptr2)->value;
+}
 int test3(int argc, char** argv) {
     if (argc != 2) {
         fprintf(stderr, "Error: No input file provided\n");
@@ -78,7 +80,7 @@ int test3(int argc, char** argv) {
         return 1;
     }
 
-    HashMap hm = hashmap_init();
+    HashMap hm = hashmap_init_cap(65536*2);
     const char* file_path = argv[1];
     char *content = read_file(file_path);
     CStringArray res = split_by_whitespace(content, strlen(content));
@@ -90,19 +92,15 @@ int test3(int argc, char** argv) {
     Hash_Pair* pairs = hashmap_to_pairs(&hm);
     size_t pairs_len = hm.length;
 
-    for (size_t i = 0; i < pairs_len-1; ++i) {
-        for (size_t j = i+1; j < pairs_len; ++j) {
-            if (pairs[i].value < pairs[j].value) {
-                Hash_Pair t = pairs[i];
-                pairs[i] = pairs[j];
-                pairs[j] = t;
-            }
-        }
-    }
-    for (size_t i = 0; i < pairs_len; ++i) {
+    qsort(pairs, pairs_len, sizeof(Hash_Pair), hashpairs_sort);
+
+    for (size_t i = 0; i < 10; ++i) {
         printf("`%s`: %ld\n", pairs[i].key, pairs[i].value);
     }
 
+    printf("\n");
+    printf("cap: %lu\n", hm.capacity);
+    printf("len: %lu\n", hm.length);
     free(res.data);
     free(content);
     free(pairs);

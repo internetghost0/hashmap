@@ -9,7 +9,7 @@
 #define HASH_VALUE_TYPE int64_t
 #define HASH_KEY_TYPE   const char*
 
-#define INIT_CAP 1024
+#define INIT_CAP 2048
 
 
 typedef struct Cell {
@@ -38,9 +38,9 @@ typedef struct {
 
 
 
-int sample_hash_func(HASH_KEY_TYPE str);
+unsigned long sample_hash_func(const unsigned char *str);
 
-HashMap hashmap_init_cap(size_t cap);;
+HashMap hashmap_init_cap(size_t cap);
 HashMap hashmap_init(void);
 
 bool hashmap_contains_key(HashMap *hm, HASH_KEY_TYPE key);
@@ -56,14 +56,17 @@ Hash_Pair* hashmap_to_pairs(HashMap *hm);
 void hashmap_free(HashMap* hm);
 
 #ifdef HASHMAP_IMPL
-int sample_hash_func(const char* str)
+unsigned long sample_hash_func(const unsigned char *str)
 {
-    int result = 0;
-    for (int i = 0; i < strlen(str); ++i) {
-        result = str[i]*33 + result;
-    }
-    return result;
+    unsigned long hash = 5381;
+    int c;
+
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return hash;
 }
+
 
 HashMap hashmap_init_cap(size_t cap)
 {
@@ -97,7 +100,6 @@ void hashmap_add(HashMap *hm, HASH_KEY_TYPE key, HASH_VALUE_TYPE value)
 {
     if (hm->capacity <= 0) hm->capacity = 1;
 
-    // i think its not worth it
     if (hm->length >= hm->capacity) {
         HashMap new = hashmap_init_cap(hm->capacity*2);
         for (size_t i = 0; i < hm->length; i++) {
