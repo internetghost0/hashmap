@@ -6,7 +6,7 @@
 #define HASHMAP_IMPL
 #include "hashmap.h"
 
-int main2(void)
+int test1(void)
 {
     HashMap hm = hashmap_init_cap(1);
     hashmap_add(&hm, "a", 1);
@@ -28,7 +28,7 @@ int main2(void)
     return 0;
 }
 
-int main1(void)
+int test2(void)
 {
     HashMap hm = hashmap_init_cap(1);
     hashmap_add(&hm, "a", 1);
@@ -59,7 +59,7 @@ int main1(void)
     printf("%s\n", hashmap_get(&hm, "a10").value == 10? "true" : "false");
     printf("%s\n", hashmap_get(&hm, "a11").value == 11? "true" : "false");
     printf("len: %zu, cap: %zu\n", hm.length, hm.capacity);
-    printf("a5: %d\n", hashmap_get(&hm, "a5").value);
+    printf("a5: %ld\n", hashmap_get(&hm, "a5").value);
     printf("[ ");
     for (size_t i = 0; i < hm.length; ++i)
     {
@@ -70,7 +70,7 @@ int main1(void)
     return 0;
 }
 
-int main(int argc, char** argv) {
+int test3(int argc, char** argv) {
     if (argc != 2) {
         fprintf(stderr, "Error: No input file provided\n");
         printf("Usage: %s <input>\n", argv[0]);
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
         }
     }
     for (size_t i = 0; i < pairs_len; ++i) {
-        printf("`%s`: %d\n", pairs[i].key, pairs[i].value);
+        printf("`%s`: %ld\n", pairs[i].key, pairs[i].value);
     }
 
     free(res.data);
@@ -107,4 +107,34 @@ int main(int argc, char** argv) {
     free(pairs);
     hashmap_free(&hm);
     return 0;
+}
+
+int test4(void)
+{
+    HashMap hm = hashmap_init_cap(1);
+
+    printf("hm[a].set(111)\n");
+    hashmap_add(&hm, "a", 111);
+
+    Hash_Result res;
+    res = hashmap_get(&hm, "a");
+    printf("hm[a].get() = %ld, %s\n", res.value, res.hasValue ? "hasValue" : "no_value");
+
+    res = hashmap_pop(&hm, "a");
+    printf("hm[a].pop() = %ld, %s\n", res.value, res.hasValue ? "hasValue" : "no_value");
+
+    res = hashmap_get(&hm, "a");
+    printf("hm[a].get() = %ld, %s\n", res.value, res.hasValue ? "hasValue" : "no_value");
+
+    res = hashmap_get(&hm, "b");
+    printf("hm[b].get() = %ld, %s\n", res.value, res.hasValue ? "hasValue" : "no_value");
+    hashmap_free(&hm);
+    return 0;
+}
+int main(int argc, char** argv)
+{
+    //return test1();
+    // return test2();
+    return test3(argc, argv);
+    //return test4();
 }

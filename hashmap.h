@@ -6,49 +6,50 @@
 #include <string.h>
 #include <assert.h>
 
-#define HASH_TYPE int64_t
+#define HASH_VALUE_TYPE int64_t
+#define HASH_KEY_TYPE   const char*
 
 #define INIT_CAP 1024
 
 
 typedef struct Cell {
-    const char* key;
-    HASH_TYPE value;
+    HASH_KEY_TYPE key;
+    HASH_VALUE_TYPE value;
     bool occupied;
     struct Cell *next;
 } Cell;
 
 typedef struct {
     Cell* data;
-    const char** keys;
+    HASH_KEY_TYPE* keys;
     size_t length;
     size_t capacity;
 } HashMap;
 
 typedef struct {
-    HASH_TYPE value;
+    HASH_VALUE_TYPE value;
     bool hasValue;
 } Hash_Result;
 
 typedef struct {
-    const char* key;
-    HASH_TYPE value;
+    HASH_KEY_TYPE key;
+    HASH_VALUE_TYPE value;
 } Hash_Pair;
 
 
 
-int sample_hash_func(const char* str);
+int sample_hash_func(HASH_KEY_TYPE str);
 
 HashMap hashmap_init_cap(size_t cap);;
 HashMap hashmap_init(void);
 
-bool hashmap_contains_key(HashMap *hm, const char *key);
+bool hashmap_contains_key(HashMap *hm, HASH_KEY_TYPE key);
 
-void hashmap_add(HashMap *hm, const char* key, HASH_TYPE value);
+void hashmap_add(HashMap *hm, HASH_KEY_TYPE key, HASH_VALUE_TYPE value);
 
-Hash_Result hashmap_get(HashMap *hm, const char* key);
+Hash_Result hashmap_get(HashMap *hm, HASH_KEY_TYPE key);
 
-Hash_Result hashmap_pop(HashMap *hm, const char* key);
+Hash_Result hashmap_pop(HashMap *hm, HASH_KEY_TYPE key);
 
 Hash_Pair* hashmap_to_pairs(HashMap *hm);
 
@@ -84,7 +85,7 @@ HashMap hashmap_init(void)
     return hashmap_init_cap(INIT_CAP);
 }
 
-bool hashmap_contains_key(HashMap *hm, const char *key)
+bool hashmap_contains_key(HashMap *hm, HASH_KEY_TYPE key)
 {
     for (size_t i = 0; i < hm->length; ++i) {
         if (strcmp(hm->keys[i], key) == 0) return true;
@@ -92,7 +93,7 @@ bool hashmap_contains_key(HashMap *hm, const char *key)
     return false;
 }
 
-void hashmap_add(HashMap *hm, const char* key, HASH_TYPE value)
+void hashmap_add(HashMap *hm, HASH_KEY_TYPE key, HASH_VALUE_TYPE value)
 {
     if (hm->capacity <= 0) hm->capacity = 1;
 
@@ -137,7 +138,7 @@ void hashmap_add(HashMap *hm, const char* key, HASH_TYPE value)
     cell->next = NULL;
 }
 
-Hash_Result hashmap_get(HashMap *hm, const char* key)
+Hash_Result hashmap_get(HashMap *hm, HASH_KEY_TYPE key)
 {
     int hash = sample_hash_func(key);
     Cell* cell = &hm->data[hash % hm->capacity];
@@ -150,7 +151,7 @@ Hash_Result hashmap_get(HashMap *hm, const char* key)
             return (Hash_Result){cell->value, true};
         }
     }
-    return (Hash_Result){(HASH_TYPE)0, false};
+    return (Hash_Result){(HASH_VALUE_TYPE)0, false};
 }
 
 Hash_Pair* hashmap_to_pairs(HashMap *hm)
@@ -165,7 +166,7 @@ Hash_Pair* hashmap_to_pairs(HashMap *hm)
     return result;
 }
 
-Hash_Result hashmap_pop(HashMap *hm, const char* key)
+Hash_Result hashmap_pop(HashMap *hm, HASH_KEY_TYPE key)
 {
     Hash_Result result = (Hash_Result){0};
 
@@ -205,7 +206,7 @@ Hash_Result hashmap_pop(HashMap *hm, const char* key)
     }
     if (result.hasValue) {
         // remove from keys
-        const char **keys = malloc(hm->capacity * sizeof(char*));
+        HASH_KEY_TYPE* keys = malloc(hm->capacity * sizeof(char*));
         size_t length = 0;
         for (size_t i = 0; i < hm->length; ++i) {
             if (strcmp(hm->keys[i], key) != 0) {
