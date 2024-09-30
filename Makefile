@@ -10,7 +10,7 @@ build: main.c
 run: main.c main build
 	./main ./main.c
 
-time: main main.py
+measure-time: main main.py
 	time ./main.py ./shakespeare.txt
-	echo
+
 	time ./main ./shakespeare.txt
