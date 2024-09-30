@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 
+#define DEFAULT_READFILE_CAP 1024*10
 
 typedef struct {
     char** data;
@@ -31,7 +32,7 @@ CStringArray split_by_delim(const char* str, size_t str_len, char delim);
 char* read_file_cap(const char* file_path, size_t capacity)
 {
     if (capacity == 0) {
-        capacity = 32*1024;
+        capacity = DEFAULT_READFILE_CAP;
     }
     size_t length = 0;
     char *buf = malloc(capacity * sizeof(char));
@@ -85,13 +86,14 @@ CStringArray split_by_whitespace(const char* str, size_t str_len)
 
     char* tmp;
     char* token;
-    char* rest = strdup(str);
+    //           strdup(str) but how to free it?
+    char* rest = (char*)str;
 
     while ((token = strtok_r(rest, " \n\t\0", &rest))) {
            if (result.length >= result.capacity) {
                result.capacity = result.capacity * 2;
-               //TODO: assert if null
                result.data = realloc(result.data, result.capacity * sizeof(char*));
+               assert(result.data && "Buy more ram");
            }
         result.data[result.length++] = token;
     }
