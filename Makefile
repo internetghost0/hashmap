@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 COMMON_CFLAGS=-Wall -Wextra -std=c99 -pedantic -ggdb
 
 .PHONY: all
@@ -8,3 +9,8 @@ build: main.c
 
 run: main.c main build
 	./main ./main.c
+
+time: main main.py
+	time ./main.py ./shakespeare.txt
+	echo
+	time ./main ./shakespeare.txt
