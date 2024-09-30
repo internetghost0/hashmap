@@ -6,7 +6,8 @@
 #include <string.h>
 #include <assert.h>
 
-#define HASH_TYPE int
+#define HASH_TYPE int64_t
+
 #define INIT_CAP 1024
 
 
@@ -29,28 +30,35 @@ typedef struct {
     bool hasValue;
 } Hash_Result;
 
+typedef struct {
+    const char* key;
+    HASH_TYPE value;
+} Hash_Pair;
 
 
-int sample_hash_func(const char* str, size_t str_len);
+
+int sample_hash_func(const char* str);
 
 HashMap hashmap_init_cap(size_t cap);;
 HashMap hashmap_init(void);
 
-void hashmap_add(HashMap *hm, const char* key, HASH_TYPE value);
-void hashmap_addn(HashMap *hm, const char* key, size_t key_len, HASH_TYPE value);
+bool hashmap_contains_key(HashMap *hm, const char *key);
 
-Hash_Result hashmap_getn(HashMap *hm, const char* key, size_t key_len);
+void hashmap_add(HashMap *hm, const char* key, HASH_TYPE value);
+
 Hash_Result hashmap_get(HashMap *hm, const char* key);
 
-// TODO: Hash_Result hashmap_pop()
+Hash_Result hashmap_pop(HashMap *hm, const char* key);
+
+Hash_Pair* hashmap_to_pairs(HashMap *hm);
 
 void hashmap_free(HashMap* hm);
 
 #ifdef HASHMAP_IMPL
-int sample_hash_func(const char* str, size_t str_len)
+int sample_hash_func(const char* str)
 {
     int result = 0;
-    for (int i = 0; i < str_len; ++i) {
+    for (int i = 0; i < strlen(str); ++i) {
         result = str[i]*33 + result;
     }
     return result;
@@ -76,9 +84,19 @@ HashMap hashmap_init(void)
     return hashmap_init_cap(INIT_CAP);
 }
 
-void hashmap_addn(HashMap *hm, const char* key, size_t key_len, HASH_TYPE value)
+bool hashmap_contains_key(HashMap *hm, const char *key)
+{
+    for (size_t i = 0; i < hm->length; ++i) {
+        if (strcmp(hm->keys[i], key) == 0) return true;
+    }
+    return false;
+}
+
+void hashmap_add(HashMap *hm, const char* key, HASH_TYPE value)
 {
     if (hm->capacity <= 0) hm->capacity = 1;
+
+    // i think its not worth it
     if (hm->length >= hm->capacity) {
         HashMap new = hashmap_init_cap(hm->capacity*2);
         for (size_t i = 0; i < hm->length; i++) {
@@ -91,20 +109,20 @@ void hashmap_addn(HashMap *hm, const char* key, size_t key_len, HASH_TYPE value)
         hm->length = new.length;
         hm->keys = new.keys;
     }
-    int hash = sample_hash_func(key, key_len);
+    int hash = sample_hash_func(key);
     Cell *cell = &hm->data[hash % hm->capacity];
 
     // if cell unoccupied -> add new key
     if (cell->occupied == false) {
         hm->keys[hm->length++] = key;
     }
-    else if (strncmp(cell->key, key, key_len) != 0) {
+    else if (strcmp(cell->key, key) != 0) {
         while (cell->next != NULL ) {
             cell = cell->next;
-            if (strncmp(cell->key, key, key_len) == 0) break;
+            if (strcmp(cell->key, key) == 0) break;
         }
         // if key is new -> allocate a cell and add new key
-        if (strncmp(cell->key, key, key_len) != 0) {
+        if (strcmp(cell->key, key) != 0) {
             cell->next = malloc(sizeof(Cell));
             assert(cell->next && "Not enough memory");
             cell = cell->next;
@@ -113,34 +131,92 @@ void hashmap_addn(HashMap *hm, const char* key, size_t key_len, HASH_TYPE value)
     }
 
     cell->key = key;
+    // memcpy? orr
     cell->value = value;
     cell->occupied = true;
     cell->next = NULL;
 }
-void hashmap_add(HashMap *hm, const char* key, HASH_TYPE value)
-{
-    hashmap_addn(hm, key, strlen(key), value);
-}
 
-Hash_Result hashmap_getn(HashMap *hm, const char* key, size_t key_len)
+Hash_Result hashmap_get(HashMap *hm, const char* key)
 {
-    int hash = sample_hash_func(key, key_len);
+    int hash = sample_hash_func(key);
     Cell* cell = &hm->data[hash % hm->capacity];
     if (cell->occupied == true) {
-        while (strncmp(cell->key, key, key_len) != 0) {
+        while (strcmp(cell->key, key) != 0) {
             if (cell->next == NULL) break;
             cell = cell->next;
         }
-        if (strncmp(cell->key, key, key_len) == 0) {
+        if (strcmp(cell->key, key) == 0) {
             return (Hash_Result){cell->value, true};
         }
     }
     return (Hash_Result){(HASH_TYPE)0, false};
 }
 
-Hash_Result hashmap_get(HashMap *hm, const char* key)
+Hash_Pair* hashmap_to_pairs(HashMap *hm)
 {
-    return hashmap_getn(hm, key, strlen(key));
+    Hash_Pair* result = malloc(hm->length * sizeof(Hash_Pair));
+    for (size_t i = 0; i < hm->length; ++i) {
+        result[i] = (Hash_Pair) {
+            hm->keys[i],
+            hashmap_get(hm, hm->keys[i]).value,
+        };
+    }
+    return result;
+}
+
+Hash_Result hashmap_pop(HashMap *hm, const char* key)
+{
+    Hash_Result result = (Hash_Result){0};
+
+    int hash = sample_hash_func(key);
+    Cell* cell = &hm->data[hash % hm->capacity];
+
+    if (cell->occupied == true) {
+        if (strcmp(cell->key, key) == 0) {
+            result.value = cell->value;
+            result.hasValue = true;
+
+            if (cell->next != NULL) {
+                Cell *t = cell->next;
+                // copy
+                cell->key = t->key;
+                cell->value = t->value;
+                cell->occupied = t->occupied;
+                cell->next = t->next;
+
+                free(t);
+            } else {
+                *cell = (Cell){0};
+            }
+        } else {
+            while (cell->next != NULL) {
+                if (strcmp(cell->next->key, key) == 0) break;
+                cell = cell->next;
+            }
+            if (strcmp(cell->next->key, key) == 0) {
+                result.value = cell->next->value;
+                result.hasValue = true;
+                Cell *t = cell->next;
+                cell->next = t->next;
+                free(t);
+            }
+        }
+    }
+    if (result.hasValue) {
+        // remove from keys
+        const char **keys = malloc(hm->capacity * sizeof(char*));
+        size_t length = 0;
+        for (size_t i = 0; i < hm->length; ++i) {
+            if (strcmp(hm->keys[i], key) != 0) {
+                keys[length++] = hm->keys[i];
+            }
+        }
+        free(hm->keys);
+        hm->keys = keys;
+        hm->length = length;
+    }
+    return result;
 }
 
 void hashmap_free(HashMap* hm)
