@@ -6,93 +6,36 @@
 #define HASHMAP_IMPL
 #include "hashmap.h"
 
-int test1(void)
+int hash_pairs_compare(const void* ptr1, const void* ptr2)
 {
-    HashMap hm = hashmap_init_cap(1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a2", 1);
-    hashmap_add(&hm, "a2", 1);
-    hashmap_add(&hm, "a2", 1);
-    hashmap_add(&hm, "a2", 1);
-    hashmap_add(&hm, "a2", 1);
-    hashmap_add(&hm, "a2", 1);
-    hashmap_add(&hm, "a2", 1);
-    hashmap_free(&hm);
-    return 0;
-}
-
-int test2(void)
-{
-    HashMap hm = hashmap_init_cap(1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a2", 2);
-    hashmap_add(&hm, "a3", 3);
-    hashmap_add(&hm, "a4", 4);
-    hashmap_add(&hm, "a5", 5);
-    hashmap_add(&hm, "a6", 6);
-    hashmap_add(&hm, "a6", 6);
-    hashmap_add(&hm, "a7", 7);
-    hashmap_add(&hm, "a8", 8);
-    hashmap_add(&hm, "a9", 9);
-    hashmap_add(&hm, "a9", 9);
-    hashmap_add(&hm, "a10", 10);
-    hashmap_add(&hm, "a11", 11);
-    hashmap_add(&hm, "a", 1);
-    hashmap_add(&hm, "a2", 2);
-    printf("%s\n",  hashmap_pop(&hm, "a").value == 1  ? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a2").value == 2  ? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a3").value == 3  ? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a4").value == 4  ? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a5").value == 5  ? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a6").value == 6  ? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a7").value == 7  ? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a8").value == 8  ? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a9").value == 9  ? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a10").value == 10? "true" : "false");
-    printf("%s\n", hashmap_get(&hm, "a11").value == 11? "true" : "false");
-    printf("len: %zu, cap: %zu\n", hm.length, hm.capacity);
-    printf("a5: %ld\n", hashmap_get(&hm, "a5").value);
-    printf("[ ");
-    for (size_t i = 0; i < hm.length; ++i)
-    {
-        printf("`%s` ", hm.keys[i]);
-    }
-    printf("]\n");
-    hashmap_free(&hm);
-    return 0;
-}
-int hashpairs_sort(const void* ptr1, const void* ptr2) {
     return ((Hash_Pair*)ptr1)->value < ((Hash_Pair*)ptr2)->value;
 }
-int test3(int argc, char** argv) {
+
+int main(int argc, char** argv)
+{
     if (argc != 2) {
         fprintf(stderr, "Error: No input file provided\n");
         printf("Usage: %s <input>\n", argv[0]);
         return 1;
     }
 
-    HashMap hm = hashmap_init_cap(65536*2);
     const char* file_path = argv[1];
+
     char *content = read_file(file_path);
+    HashMap hm = hashmap_init_cap(65536*2);
+
     CStringArray res = split_by_whitespace(content, strlen(content));
+
     for (size_t i = 0; i < res.length; ++i) {
         char* p = res.data[i];
         for(; *p; p++) *p = tolower(*p);
         hashmap_add(&hm, res.data[i], 1+hashmap_get(&hm, res.data[i]).value);
     }
+
     Hash_Pair* pairs = hashmap_to_pairs(&hm);
     size_t pairs_len = hm.length;
 
-    qsort(pairs, pairs_len, sizeof(Hash_Pair), hashpairs_sort);
+    qsort(pairs, pairs_len, sizeof(Hash_Pair), hash_pairs_compare);
 
     for (size_t i = 0; i < 10; ++i) {
         printf("`%s`: %ld\n", pairs[i].key, pairs[i].value);
@@ -101,6 +44,7 @@ int test3(int argc, char** argv) {
     printf("\n");
     printf("cap: %lu\n", hm.capacity);
     printf("len: %lu\n", hm.length);
+
     free(res.data);
     free(content);
     free(pairs);
@@ -108,32 +52,3 @@ int test3(int argc, char** argv) {
     return 0;
 }
 
-int test4(void)
-{
-    HashMap hm = hashmap_init_cap(1);
-
-    printf("hm[a].set(111)\n");
-    hashmap_add(&hm, "a", 111);
-
-    Hash_Result res;
-    res = hashmap_get(&hm, "a");
-    printf("hm[a].get() = %ld, %s\n", res.value, res.hasValue ? "hasValue" : "no_value");
-
-    res = hashmap_pop(&hm, "a");
-    printf("hm[a].pop() = %ld, %s\n", res.value, res.hasValue ? "hasValue" : "no_value");
-
-    res = hashmap_get(&hm, "a");
-    printf("hm[a].get() = %ld, %s\n", res.value, res.hasValue ? "hasValue" : "no_value");
-
-    res = hashmap_get(&hm, "b");
-    printf("hm[b].get() = %ld, %s\n", res.value, res.hasValue ? "hasValue" : "no_value");
-    hashmap_free(&hm);
-    return 0;
-}
-int main(int argc, char** argv)
-{
-    //return test1();
-    // return test2();
-    return test3(argc, argv);
-    //return test4();
-}
