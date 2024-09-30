@@ -32,20 +32,24 @@ char* read_file(const char* file_path)
 {
     FILE* f = fopen(file_path, "rb");
     if (f == NULL) {
-        fprintf(stderr, "Could not open %s for reading: %s", file_path, strerror(errno));
+        fprintf(stderr, "ERROR: Could not open `%s` for reading: %s\n", file_path, strerror(errno));
         return NULL;
     }
-    // TODO: assert
     fseek(f, 0, SEEK_END);
-    long capacity = ftell(f) + 1;
+    int32_t capacity = ftell(f);
+    if (capacity < 0) {
+        fprintf(stderr, "ERROR: Could not ftell file: `%s`\n", file_path);
+        fprintf(stderr, "Maybe it's a directory?\n", file_path);
+        return NULL;
+    }
     fseek(f, 0, SEEK_SET);
-    size_t length = capacity;
+
     char *buf = malloc(capacity * sizeof(char));
     assert(buf != NULL && "Not enough memory");
 
     fread(buf, 1, capacity, f);
     if (ferror(f)) {
-        fprintf(stderr, "Could not read %s: %s\n", file_path, strerror(errno));
+        fprintf(stderr, "ERROR: Could not read `%s`: %s\n", file_path, strerror(errno));
         free(f);
         return NULL;
     }

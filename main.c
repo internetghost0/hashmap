@@ -22,9 +22,16 @@ int main(int argc, char** argv)
     const char* file_path = argv[1];
 
     char *content = read_file(file_path);
+    if (!content) {
+        return -1;
+    }
     HashMap hm = hashmap_init_cap(65536*2);
 
     CStringArray res = split_by_whitespace(content, strlen(content));
+    if (res.length == 0) {
+        fprintf(stderr, "ERROR: empty file\n");
+        return -1;
+    }
 
     for (size_t i = 0; i < res.length; ++i) {
         char* p = res.data[i];
