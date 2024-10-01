@@ -3,39 +3,16 @@
 ## Usage
 ```
 $ make measure-time
-time ./main.py ./shakespeare.txt
-`the`: 27483
-`and`: 25991
-`i`: 19540
-`to`: 18656
-`of`: 17952
-`a`: 14365
-`my`: 12455
-`in`: 10660
-`you`: 10597
-`that`: 10473
+time ./main ./shakespeare.txt 1>/dev/null
 
-real	0m0.604s
-user	0m0.509s
-sys	0m0.087s
+real	0m0.108s
+user	0m0.095s
+sys	0m0.012s
+--------------------------------------------
+time ./main.py ./shakespeare.txt 1>/dev/null
 
-time ./main ./shakespeare.txt
-`the`: 27483
-`and`: 25991
-`i`: 19540
-`to`: 18656
-`of`: 17952
-`a`: 14365
-`my`: 12455
-`in`: 10660
-`you`: 10597
-`that`: 10473
-
-cap: 131072
-len: 59207
-
-real	0m0.137s
-user	0m0.117s
-sys	0m0.020s
+real	0m0.380s
+user	0m0.304s
+sys	0m0.076s
 ```
 
