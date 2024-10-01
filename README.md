@@ -15,17 +15,18 @@ $ ./word_freq ./shakespeare.txt
 `you`: 10597
 `that`: 10473
 $ make measure-time
-time ./main ./shakespeare.txt 1>/dev/null
+time ./word_freq ./shakespeare.txt 1>/dev/null
 
-real	0m0.108s
-user	0m0.095s
-sys	0m0.012s
+real	0m0.112s
+user	0m0.103s
+sys	0m0.009s
 --------------------------------------------
-time ./main.py ./shakespeare.txt 1>/dev/null
+time ./word_freq.py ./shakespeare.txt 1>/dev/null
 
-real	0m0.380s
-user	0m0.304s
-sys	0m0.076s
+real	0m0.427s
+user	0m0.338s
+sys	0m0.089s
+
 ```
 
 ## Example
