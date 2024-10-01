@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-COMMON_CFLAGS=-Wall -Wextra -std=c99 -pedantic -ggdb
+CFLAGS=-Wall -Wextra -std=c99 -pedantic -D_POSIX_C_SOURCE -ggdb
 
 .PHONY: all
 all: build
