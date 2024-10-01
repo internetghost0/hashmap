@@ -4,13 +4,13 @@ CFLAGS=-Wall -Wextra -std=c99 -pedantic -D_POSIX_C_SOURCE -ggdb
 .PHONY: all
 all: build
 
-build: main.c
-	$(CC) $(CFLAGS) -O3 -o main main.c
+build: word_freq.c
+	$(CC) $(CFLAGS) -O3 -o word_freq word_freq.c
 
-run: main.c main build
-	./main ./main.c
+run: word_freq.c word_freq build
+	./word_freq ./word_freq.c
 
-measure-time: main main.py shakespeare.txt
-	time ./main ./shakespeare.txt 1>/dev/null
+measure-time: word_freq word_freq.py shakespeare.txt
+	time ./word_freq ./shakespeare.txt 1>/dev/null
 	@echo "--------------------------------------------"
-	time ./main.py ./shakespeare.txt 1>/dev/null
+	time ./word_freq.py ./shakespeare.txt 1>/dev/null
