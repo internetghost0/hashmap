@@ -1,7 +1,19 @@
 # HashTable in C
 
-## Usage
+## Usage (word frequency example)
 ```
+$ make
+$ ./word_freq ./shakespeare.txt
+`the`: 27483
+`and`: 25991
+`i`: 19540
+`to`: 18656
+`of`: 17952
+`a`: 14365
+`my`: 12455
+`in`: 10660
+`you`: 10597
+`that`: 10473
 $ make measure-time
 time ./main ./shakespeare.txt 1>/dev/null
 
