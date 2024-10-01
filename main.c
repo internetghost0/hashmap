@@ -25,7 +25,8 @@ int main(int argc, char** argv)
     if (!content) {
         return -1;
     }
-    HashMap hm = hashmap_init_cap(65536*2);
+    //HashMap hm = hashmap_init_cap(65536*2);
+    HashMap hm = hashmap_init();
 
     CStringArray res = split_by_whitespace(content, strlen(content));
     if (res.length == 0) {
@@ -33,6 +34,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    Hash_Result hr;
     for (size_t i = 0; i < res.length; ++i) {
         char* p = res.data[i];
         for(; *p; p++) *p = tolower(*p);
@@ -44,13 +46,9 @@ int main(int argc, char** argv)
 
     qsort(pairs, pairs_len, sizeof(Hash_Pair), hash_pairs_compare);
 
-    for (size_t i = 0; i < 10; ++i) {
+    for (size_t i = 0; i < 10 && i < pairs_len; ++i) {
         printf("`%s`: %ld\n", pairs[i].key, pairs[i].value);
     }
-
-    printf("\n");
-    printf("cap: %lu\n", hm.capacity);
-    printf("len: %lu\n", hm.length);
 
     free(res.data);
     free(content);

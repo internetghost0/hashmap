@@ -2,7 +2,6 @@
 
 import sys
 
-
 if __name__ == '__main__':
 
     if len(sys.argv) != 2:
@@ -11,9 +10,9 @@ if __name__ == '__main__':
 
     fn = sys.argv[1]
 
-    data = open(fn, 'r').read().split()
     hashmap = {}
     pairs = []
+    data = open(fn, 'r').read().split()
 
     for word in data:
         word = word.lower()
@@ -24,5 +23,6 @@ if __name__ == '__main__':
 
     pairs.sort(key=lambda x: x[1], reverse=True)
 
-    for i in range (10):
-        print(f'`{pairs[i][0]}`: {pairs[i][1]}')
+    for i, pair in enumerate(pairs):
+        if (i >= 10): break
+        print(f'`{pair[0]}`: {pair[1]}')
