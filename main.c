@@ -25,16 +25,18 @@ int main(int argc, char** argv)
     if (!content) {
         return -1;
     }
-    //HashMap hm = hashmap_init_cap(65536*2);
-    HashMap hm = hashmap_init();
 
-    CStringArray res = split_by_whitespace(content, strlen(content));
+    CStringArray res = split_by_whitespace(content);
     if (res.length == 0) {
         fprintf(stderr, "ERROR: empty file\n");
+        free(content);
+        free(res.data);
         return -1;
     }
 
-    Hash_Result hr;
+    //HashMap hm = hashmap_init_cap(65536*2);
+    HashMap hm = hashmap_init();
+
     for (size_t i = 0; i < res.length; ++i) {
         char* p = res.data[i];
         for(; *p; p++) *p = tolower(*p);
@@ -50,10 +52,10 @@ int main(int argc, char** argv)
         printf("`%s`: %ld\n", pairs[i].key, pairs[i].value);
     }
 
-    free(res.data);
-    free(content);
     free(pairs);
+    free(res.data);
     hashmap_free(&hm);
+    free(content);
     return 0;
 }
 

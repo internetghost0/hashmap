@@ -38,7 +38,7 @@ typedef struct {
 
 
 
-unsigned long sample_hash_func(const unsigned char *str);
+uint64_t sample_hash_func(const char *str);
 
 HashMap hashmap_init_cap(size_t cap);
 HashMap hashmap_init(void);
@@ -56,13 +56,14 @@ Hash_Pair* hashmap_to_pairs(HashMap *hm);
 void hashmap_free(HashMap* hm);
 
 #ifdef HASHMAP_IMPL
-unsigned long sample_hash_func(const unsigned char *str)
+uint64_t sample_hash_func(const char *str)
 {
-    unsigned long hash = 5381;
+    uint64_t hash = 5381;
     int c;
 
-    while (c = *str++)
+    while ((c = *str++)) {
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    }
 
     return hash;
 }

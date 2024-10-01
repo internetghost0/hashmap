@@ -1,6 +1,7 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 #include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 #include <errno.h>
 #include <string.h>
@@ -23,8 +24,8 @@ typedef struct {
 char* read_file(const char* file_path);
 
 const char* strip_left(const char* str, size_t str_len);
-CStringArray split_by_delim(const char* str, size_t str_len, const char* delim);
-CStringArray split_by_whitespace(const char* str, size_t str_len);
+CStringArray split_by_delim(const char* str, const char* delim);
+CStringArray split_by_whitespace(const char* str);
 
 
 #ifdef UTILS_IMPL
@@ -39,7 +40,8 @@ char* read_file(const char* file_path)
     int32_t capacity = ftell(f);
     if (capacity < 0) {
         fprintf(stderr, "ERROR: Could not ftell file: `%s`\n", file_path);
-        fprintf(stderr, "Maybe it's a directory?\n", file_path);
+        fprintf(stderr, "Maybe it's a directory?\n");
+        fclose(f);
         return NULL;
     }
     fseek(f, 0, SEEK_SET);
@@ -50,10 +52,10 @@ char* read_file(const char* file_path)
     fread(buf, 1, capacity, f);
     if (ferror(f)) {
         fprintf(stderr, "ERROR: Could not read `%s`: %s\n", file_path, strerror(errno));
-        free(f);
+        fclose(f);
         return NULL;
     }
-    free(f);
+    fclose(f);
     return buf;
 }
 
@@ -66,7 +68,7 @@ const char* strip_left(const char* str, size_t str_len)
 }
 
 
-CStringArray split_by_delim(const char* str, size_t str_len, const char* delim)
+CStringArray split_by_delim(const char* str, const char* delim)
 {
     CStringArray result = {0};
     result.data = NULL;
@@ -77,7 +79,6 @@ CStringArray split_by_delim(const char* str, size_t str_len, const char* delim)
     assert(result.data != NULL && "Not enough memory");
     memset(result.data, 0, sizeof(char*) * result.capacity);
 
-    char* tmp;
     char* token;
     char* rest = (char*)str;
 
@@ -92,9 +93,9 @@ CStringArray split_by_delim(const char* str, size_t str_len, const char* delim)
     return result;
 }
 
-CStringArray split_by_whitespace(const char* str, size_t str_len)
+CStringArray split_by_whitespace(const char* str)
 {
-    return split_by_delim(str, str_len, " \t\n\0");
+    return split_by_delim(str, " \t\n\0");
 }
 #endif // UTILS_IMPL
 
