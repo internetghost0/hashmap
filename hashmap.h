@@ -12,7 +12,6 @@
 
 #define INIT_CAP 2048
 
-
 typedef struct Cell {
     HASH_KEY_TYPE key;
     HASH_VALUE_TYPE value;
@@ -30,29 +29,29 @@ typedef struct {
 typedef struct {
     HASH_VALUE_TYPE value;
     bool hasValue;
-} Hash_Result;
+} HM_Result;
 
 typedef struct {
     HASH_KEY_TYPE key;
     HASH_VALUE_TYPE value;
-} Hash_Pair;
+} HM_Pair;
 
 
 
 uint64_t sample_hash_func(const char *str);
 
-HashMap hashmap_init_cap(size_t cap);
-HashMap hashmap_init(void);
+HashMap *hashmap_init_cap(size_t cap);
+HashMap *hashmap_init(void);
 
 bool hashmap_contains_key(HashMap *hm, HASH_KEY_TYPE key);
 
 void hashmap_add(HashMap *hm, HASH_KEY_TYPE key, HASH_VALUE_TYPE value);
 
-Hash_Result hashmap_get(HashMap *hm, HASH_KEY_TYPE key);
+HM_Result hashmap_get(HashMap *hm, HASH_KEY_TYPE key);
 
-Hash_Result hashmap_pop(HashMap *hm, HASH_KEY_TYPE key);
+HM_Result hashmap_pop(HashMap *hm, HASH_KEY_TYPE key);
 
-Hash_Pair* hashmap_to_pairs(HashMap *hm);
+HM_Pair* hashmap_to_pairs(HashMap *hm);
 
 void hashmap_free(HashMap* hm);
 
@@ -70,22 +69,24 @@ uint64_t sample_hash_func(const char *str)
 }
 
 
-HashMap hashmap_init_cap(size_t cap)
+HashMap *hashmap_init_cap(size_t cap)
 {
-    HashMap result = {
+
+    HashMap *result = malloc(sizeof(HashMap));
+    *result = (HashMap){
         .data = NULL,
         .keys = NULL,
         .length = 0,
         .capacity = cap,
     };
-    result.data = malloc(result.capacity * sizeof(Cell));
-    assert(result.data && "Not enough memory");
-    result.keys = malloc(result.capacity * sizeof(char*));
-    assert(result.keys && "Not enough memory");
-    memset(result.data, 0, sizeof(Cell) * result.capacity);
+    result->data = malloc(result->capacity * sizeof(Cell));
+    assert(result->data && "Not enough memory");
+    result->keys = malloc(result->capacity * sizeof(char*));
+    assert(result->keys && "Not enough memory");
+    memset(result->data, 0, sizeof(Cell) * result->capacity);
     return result;
 }
-HashMap hashmap_init(void)
+HashMap *hashmap_init(void)
 {
     return hashmap_init_cap(INIT_CAP);
 }
@@ -103,16 +104,12 @@ void hashmap_add(HashMap *hm, HASH_KEY_TYPE key, HASH_VALUE_TYPE value)
     if (hm->capacity <= 0) hm->capacity = 1;
 
     if (hm->length >= hm->capacity) {
-        HashMap new = hashmap_init_cap(hm->capacity*2);
+        HashMap *new = hashmap_init_cap(hm->capacity*2);
         for (size_t i = 0; i < hm->length; i++) {
-            hashmap_add(&new, hm->keys[i], hashmap_get(hm, hm->keys[i]).value);
+            hashmap_add(new, hm->keys[i], hashmap_get(hm, hm->keys[i]).value);
         }
         hashmap_free(hm);
-
-        hm->data = new.data;
-        hm->capacity = new.capacity;
-        hm->length = new.length;
-        hm->keys = new.keys;
+        hm = new;
     }
     int hash = sample_hash_func(key);
     Cell *cell = &hm->data[hash % hm->capacity];
@@ -154,7 +151,7 @@ void hashmap_add(HashMap *hm, HASH_KEY_TYPE key, HASH_VALUE_TYPE value)
     }
 }
 
-Hash_Result hashmap_get(HashMap *hm, HASH_KEY_TYPE key)
+HM_Result hashmap_get(HashMap *hm, HASH_KEY_TYPE key)
 {
     int hash = sample_hash_func(key);
     Cell* cell = &hm->data[hash % hm->capacity];
@@ -164,17 +161,17 @@ Hash_Result hashmap_get(HashMap *hm, HASH_KEY_TYPE key)
             cell = cell->next;
         }
         if (strcmp(cell->key, key) == 0) {
-            return (Hash_Result){cell->value, true};
+            return (HM_Result){cell->value, true};
         }
     }
-    return (Hash_Result){(HASH_VALUE_TYPE)0, false};
+    return (HM_Result){(HASH_VALUE_TYPE)0, false};
 }
 
-Hash_Pair* hashmap_to_pairs(HashMap *hm)
+HM_Pair* hashmap_to_pairs(HashMap *hm)
 {
-    Hash_Pair* result = malloc(hm->length * sizeof(Hash_Pair));
+    HM_Pair* result = malloc(hm->length * sizeof(HM_Pair));
     for (size_t i = 0; i < hm->length; ++i) {
-        result[i] = (Hash_Pair) {
+        result[i] = (HM_Pair) {
             hm->keys[i],
             hashmap_get(hm, hm->keys[i]).value,
         };
@@ -182,9 +179,9 @@ Hash_Pair* hashmap_to_pairs(HashMap *hm)
     return result;
 }
 
-Hash_Result hashmap_pop(HashMap *hm, HASH_KEY_TYPE key)
+HM_Result hashmap_pop(HashMap *hm, HASH_KEY_TYPE key)
 {
-    Hash_Result result = (Hash_Result){0};
+    HM_Result result = (HM_Result){0};
 
     int hash = sample_hash_func(key);
     Cell* cell = &hm->data[hash % hm->capacity];
@@ -250,6 +247,7 @@ void hashmap_free(HashMap* hm)
     hm->keys = NULL;
     free(hm->data);
     hm->data = NULL;
+    free(hm);
     hm = NULL;
 }
 
