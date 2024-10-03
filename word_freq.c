@@ -6,9 +6,9 @@
 #define HASHMAP_IMPL
 #include "hashmap.h"
 
-int hash_pairs_compare(const void* ptr1, const void* ptr2)
+int hashmap_pairs_compare(const void* ptr1, const void* ptr2)
 {
-    return ((Hash_Pair*)ptr1)->value < ((Hash_Pair*)ptr2)->value;
+    return ((HM_Pair*)ptr1)->value < ((HM_Pair*)ptr2)->value;
 }
 
 int main(int argc, char** argv)
@@ -34,19 +34,19 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    //HashMap hm = hashmap_init_cap(65536*2);
-    HashMap hm = hashmap_init();
+    HashMap* hm = hashmap_init_cap(65536*2);
+    //HashMap* hm = hashmap_init();
 
     for (size_t i = 0; i < res.length; ++i) {
         char* p = res.data[i];
         for(; *p; p++) *p = tolower(*p);
-        hashmap_add(&hm, res.data[i], 1+hashmap_get(&hm, res.data[i]).value);
+        hashmap_add(hm, res.data[i], 1+hashmap_get(hm, res.data[i]).value);
     }
 
-    Hash_Pair* pairs = hashmap_to_pairs(&hm);
-    size_t pairs_len = hm.length;
+    HM_Pair* pairs = hashmap_to_pairs(hm);
+    size_t pairs_len = hm->length;
 
-    qsort(pairs, pairs_len, sizeof(Hash_Pair), hash_pairs_compare);
+    qsort(pairs, pairs_len, sizeof(HM_Pair), hashmap_pairs_compare);
 
     for (size_t i = 0; i < 10 && i < pairs_len; ++i) {
         printf("`%s`: %ld\n", pairs[i].key, pairs[i].value);
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 
     free(pairs);
     free(res.data);
-    hashmap_free(&hm);
+    hashmap_free(hm);
     free(content);
     return 0;
 }
